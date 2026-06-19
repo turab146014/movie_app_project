@@ -21,7 +21,7 @@ const TabIcon = ({focused, title, icon} :any) => {
              className= ' text-secondary text-base font-semibold ml-2'
              >{title}</Text>
 
-            </ImageBackground>
+ </ImageBackground>
   )
 }
 
@@ -44,8 +44,8 @@ const _layout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarShowLabel : false,
-        tabBarItemStyle:{
+          tabBarShowLabel : false,
+          tabBarItemStyle:{
           width : "100%",
           height : "100%",
           justifyContent : "center",
