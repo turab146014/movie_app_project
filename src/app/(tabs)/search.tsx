@@ -6,7 +6,8 @@ import useFetch from '../../../services/usefetch';
 import { fetchPopularMovies } from '../../../services/api';
 import { icons } from '../../../constants/icons';
 import SearchBar from "../../../components/SearchBar";
-import { reset } from 'expo-router/build/react-navigation/routers/CommonActions';
+import { updateSearchCount } from '../../../services/appwrite';
+
 
 const Search = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -21,9 +22,12 @@ const Search = () => {
   }), false)
 
   useEffect (() => {
+
     const timeoutId = setTimeout (async () =>{
     if(searchQuery.trim()){
       await loadMovies();
+      if(movie?.length > 0 && movie?.[0])
+      updateSearchCount(searchQuery, movie[0]);
     }
     else {
       reset()
