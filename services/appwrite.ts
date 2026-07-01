@@ -7,18 +7,29 @@ const APPWRITE_ENDPOINT = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!;
 
 const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
-  .setProject(PROJECT_ID);
+  .setProject(PROJECT_ID)
+  .setPlatform("com.jsm.movieapp");
 
 const database = new Databases(client);
 
+const getPosterUrl = (posterPath: string | null) => {
+  return posterPath
+    ? `https://image.tmdb.org/t/p/w500${posterPath}`
+    : "https://placehold.co/600x400/1a1a1a/ffffff.png?text=No+Image";
+};
+
 export const updateSearchCount = async (query: string, movie: Movie) => {
   try {
-    console.log("Appwrite endpoint:", APPWRITE_ENDPOINT);
-    console.log("Appwrite project:", PROJECT_ID);
-    console.log("Updating Appwrite:", query, movie?.title);
+    const searchTerm = query.trim();
+
+    if (!searchTerm || !movie) {
+      return;
+    }
+
+    console.log("Updating Appwrite:", searchTerm, movie.title);
 
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("searchTerm", query),
+      Query.equal("searchTerm", searchTerm),
     ]);
 
     if (result.documents.length > 0) {
@@ -29,18 +40,18 @@ export const updateSearchCount = async (query: string, movie: Movie) => {
         COLLECTION_ID,
         existingMovie.$id,
         {
-          count: existingMovie.count + 1,
+          count: Number(existingMovie.count) + 1,
         }
       );
 
       console.log("Search count updated");
     } else {
       await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-        searchTerm: query,
+        searchTerm,
         movie_id: movie.id,
         count: 1,
         title: movie.title,
-        poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        poster_url: getPosterUrl(movie.poster_path),
       });
 
       console.log("New search row created");
@@ -50,19 +61,20 @@ export const updateSearchCount = async (query: string, movie: Movie) => {
   }
 };
 
+export const getTrendingMovies = async (): Promise<TrendingMovie[]> => {
+  try {
+    console.log("Reading trending movies from Appwrite");
 
-export const getTrendingMovies = async () : Promise<TrendingMovie[] | undefined> => {
-  try{
-     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+    const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
       Query.limit(5),
-      Query.orderDesc('count'),
+      Query.orderDesc("count"),
+    ]);
 
-     ])
+    console.log("Trending documents:", result.documents.length);
 
-     return result.documents as unknown as TrendingMovie[];
+    return result.documents as unknown as TrendingMovie[];
+  } catch (error) {
+    console.log("Trending movies error:", error);
+    return [];
   }
-  catch (error){
-    console.log(error);
-    return undefined;
-  }
-}
+};

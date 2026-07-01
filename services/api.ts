@@ -40,3 +40,39 @@ export const fetchPopularMovies = async ({ query }: { query: string }) => {
 
   return data.results;
 };
+
+export const fetchMoviesDetails = async (
+  movieId: string
+): Promise<MovieDetails> => {
+  try {
+    if (!TMDB_CONFIG.API_KEY) {
+      throw new Error("TMDB token is missing. Check .env file.");
+    }
+
+    const endpoint = `${TMDB_CONFIG.BASE_URL}/movie/${movieId}`;
+
+    console.log("Movie detail endpoint:", endpoint);
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: TMDB_CONFIG.headers,
+    });
+
+    const data = await response.json();
+
+    console.log("Movie detail status:", response.status);
+    console.log("Movie detail data:", data);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.status_message ||
+          `Failed to fetch movie detail: ${response.status}`
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Movie detail error:", error);
+    throw error;
+  }
+};
